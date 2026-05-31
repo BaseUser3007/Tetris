@@ -1,13 +1,33 @@
 package Scripts;
 
+import Scripts.Interfaces.Listener.ILineClearedListener;
+
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Grid {
 
     private int[][] _cells;
+    private List<ILineClearedListener> _listeners;
 
     public Grid() {
         _cells = new int[GameConfig.ROWS][GameConfig.COLS];
+        _listeners = new ArrayList<>();
+    }
+
+    public void addListener(ILineClearedListener listener) {
+        _listeners.add(listener);
+    }
+
+    public void removeListener(ILineClearedListener listener) {
+        _listeners.remove(listener);
+    }
+
+    private void notifyListeners(int linesCleared) {
+        for (ILineClearedListener listener : _listeners) {
+            listener.onLinesCleared(linesCleared);
+        }
     }
 
     public int get(int row, int col) {
@@ -34,17 +54,20 @@ public class Grid {
         _cells = new int[GameConfig.ROWS][GameConfig.COLS];
     }
 
-    public int clearLines() {
+    public void clearLines() {
         int linesCleared = 0;
 
         for (int row = getRows() - 1; row >= 0; row--) {
             if (isLineFull(row)) {
                 removeLine(row);
                 linesCleared++;
-                row++; // проверяем эту же строку снова после сдвига
+                row++;
             }
         }
-        return linesCleared;
+
+        if (linesCleared > 0) {
+            notifyListeners(linesCleared);
+        }
     }
 
     private boolean isLineFull(int row) {
@@ -55,11 +78,9 @@ public class Grid {
     }
 
     private void removeLine(int clearedRow) {
-        // сдвигаем все строки выше вниз
         for (int row = clearedRow; row > 0; row--) {
             _cells[row] = _cells[row - 1].clone();
         }
-        // верхняя строка становится пустой
         _cells[0] = new int[getCols()];
     }
 

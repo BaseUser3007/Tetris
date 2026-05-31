@@ -16,10 +16,15 @@ public abstract class Figure implements IPoolable, IMovable {
         _active = false;
     }
 
+    protected abstract int[][] getInitialShape();
+
+    public abstract Figure copy();
+
     @Override
     public void reset() {
         _x = 3;
         _y = 0;
+        _shape = getInitialShape();
     }
 
     @Override
@@ -35,7 +40,6 @@ public abstract class Figure implements IPoolable, IMovable {
     public void rotate() {
         int size = _shape.length;
         int[][] rotated = new int[size][size];
-
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 rotated[col][size - 1 - row] = _shape[row][col];
@@ -44,11 +48,9 @@ public abstract class Figure implements IPoolable, IMovable {
         _shape = rotated;
     }
 
-    // возвращает форму после поворота, не применяя его
     public int[][] getRotatedShape() {
         int size = _shape.length;
         int[][] rotated = new int[size][size];
-
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 rotated[col][size - 1 - row] = _shape[row][col];

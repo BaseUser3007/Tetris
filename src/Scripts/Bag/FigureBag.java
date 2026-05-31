@@ -8,13 +8,19 @@ import java.util.List;
 
 public class FigureBag extends ObjectPool<Figure> {
 
-    private List<Figure> _bag;
+    private static final int PREVIEW_COUNT = 3;
+
+    private List<Figure> _currentBag;
+    private List<Figure> _nextBag;
     private int _bagIndex;
 
     public FigureBag() {
         super();
-        _bag = new ArrayList<>();
-        roll();
+        _currentBag = new ArrayList<>();
+        _nextBag = new ArrayList<>();
+        roll(_currentBag);
+        roll(_nextBag);
+        _bagIndex = 0;
     }
 
     @Override
@@ -33,20 +39,43 @@ public class FigureBag extends ObjectPool<Figure> {
         return new FigureI();
     }
 
-    public void roll() {
-        _bag.clear();
-        _bag.addAll(_pool);
-        Collections.shuffle(_bag);
-        _bagIndex = 0;
+    public void roll(List<Figure> bag) {
+        bag.clear();
+        bag.addAll(_pool);
+        Collections.shuffle(bag);
     }
 
     public Figure get() {
-        if (_bagIndex >= _bag.size()) {
-            roll();
+        if (_bagIndex >= _currentBag.size()) {
+            _currentBag.clear();
+            _currentBag.addAll(_nextBag);
+            roll(_nextBag);
+            _bagIndex = 0;
         }
-        Figure figure = _bag.get(_bagIndex++);
+        Figure figure = _currentBag.get(_bagIndex++);
         figure.reset();
         figure.setActive(true);
         return figure;
+    }
+
+    public List<Figure> getPreview() {
+        List<Figure> preview = new ArrayList<>();
+
+        for (int i = _bagIndex; i < _bagIndex + PREVIEW_COUNT; i++) {
+            if (i < _currentBag.size()) {
+                preview.add(_currentBag.get(i).copy());
+            } else {
+                preview.add(_nextBag.get(i - _currentBag.size()).copy());
+            }
+        }
+        return preview;
+    }
+
+    public List<Figure> getCurrentBag() {
+        return _currentBag;
+    }
+
+    public List<Figure> getNextBag() {
+        return _nextBag;
     }
 }

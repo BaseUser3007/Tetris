@@ -1,6 +1,6 @@
 package Scripts;
 
-import Scripts.Interfaces.ITickListener;
+import Scripts.Interfaces.Listener.ITickListener;
 
 import javax.swing.Timer;
 import java.util.ArrayList;

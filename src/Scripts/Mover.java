@@ -2,18 +2,26 @@ package Scripts;
 
 import Scripts.Figures.Figure;
 import Scripts.Interfaces.IMovable;
-import Scripts.Interfaces.ITickListener;
+import Scripts.Interfaces.Listener.IScoreListener;
+import Scripts.Interfaces.Listener.ITickListener;
 
 public class Mover implements ITickListener {
 
     private IMovable _current;
     private Figure _currentFigure;
     private Runnable _onDetach;
+    private Runnable _onGameOver;
     private Grid _grid;
+    private IScoreListener _scoreListener;
 
-    public Mover(Runnable onDetach, Grid grid) {
+    public Mover(Runnable onDetach, Runnable onGameOver, Grid grid) {
         _onDetach = onDetach;
+        _onGameOver = onGameOver;
         _grid = grid;
+    }
+
+    public void setScoreListener(IScoreListener scoreListener) {
+        _scoreListener = scoreListener;
     }
 
     @Override
@@ -26,6 +34,10 @@ public class Mover implements ITickListener {
     }
 
     public void attach(Figure figure) {
+        if (!canSpawn(figure)) {
+            _onGameOver.run();
+            return;
+        }
         _current = figure;
         _currentFigure = figure;
     }
@@ -52,6 +64,21 @@ public class Mover implements ITickListener {
         }
     }
 
+    private boolean canSpawn(Figure figure) {
+        int[][] shape = figure.getShape();
+        int figureX = figure.getX();
+        int figureY = figure.getY();
+
+        for (int row = 0; row < shape.length; row++) {
+            for (int col = 0; col < shape[row].length; col++) {
+                if (shape[row][col] == 1) {
+                    if (!getGrid().isEmpty(figureY + row, figureX + col)) return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private void tick() {
         if (_current == null) return;
         if (canMoveDown()) {
@@ -63,8 +90,12 @@ public class Mover implements ITickListener {
 
     public void moveDown() {
         if (_current == null) return;
-        if (canMoveDown()) _current.moveDown();
-        else detach();
+        if (canMoveDown()) {
+            _current.moveDown();
+            if (_scoreListener != null) _scoreListener.onFigureDropped();
+        } else {
+            detach();
+        }
     }
 
     public void moveLeft() {
