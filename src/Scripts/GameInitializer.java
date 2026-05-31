@@ -13,6 +13,15 @@ public class GameInitializer {
     private JFrame _window;
     private JPanel _gamePanel;
     private RenderFigure _renderFigure;
+    private Grid _grid;
+
+    public GameInitializer(Grid grid) {
+        _grid = grid;
+    }
+
+    private Grid getGrid() {
+        return _grid;
+    }
 
     public void initialize(KeyHandler keyHandler, RenderFigure renderFigure) {
         _renderFigure = renderFigure;
@@ -27,6 +36,7 @@ public class GameInitializer {
                 super.paintComponent(g);
                 drawBackground(g);
                 drawGrid(g);
+                getGrid().render(g);
                 _renderFigure.render(g);
             }
         };
@@ -49,10 +59,10 @@ public class GameInitializer {
 
     private void drawGrid(Graphics g) {
         g.setColor(new Color(40, 40, 40));
-        for (int col = 0; col <= GameConfig.COLS; col++) {
+        for (int col = 0; col <= getGrid().getCols(); col++) {
             g.drawLine(col * GameConfig.CELL_SIZE, 0, col * GameConfig.CELL_SIZE, GameConfig.WINDOW_HEIGHT);
         }
-        for (int row = 0; row <= GameConfig.ROWS; row++) {
+        for (int row = 0; row <= getGrid().getRows(); row++) {
             g.drawLine(0, row * GameConfig.CELL_SIZE, GameConfig.WINDOW_WIDTH, row * GameConfig.CELL_SIZE);
         }
     }

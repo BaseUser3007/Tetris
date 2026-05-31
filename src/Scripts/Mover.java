@@ -2,15 +2,27 @@ package Scripts;
 
 import Scripts.Figures.Figure;
 import Scripts.Interfaces.IMovable;
+import Scripts.Interfaces.ITickListener;
 
-public class Mover {
+public class Mover implements ITickListener {
 
     private IMovable _current;
     private Figure _currentFigure;
     private Runnable _onDetach;
+    private Grid _grid;
 
-    public Mover(Runnable onDetach) {
+    public Mover(Runnable onDetach, Grid grid) {
         _onDetach = onDetach;
+        _grid = grid;
+    }
+
+    @Override
+    public void onTick() {
+        tick();
+    }
+
+    private Grid getGrid() {
+        return _grid;
     }
 
     public void attach(Figure figure) {
@@ -19,12 +31,28 @@ public class Mover {
     }
 
     public void detach() {
+        placeFigure();
+        getGrid().clearLines();
         _current = null;
         _currentFigure = null;
         _onDetach.run();
     }
 
-    public void tick() {
+    private void placeFigure() {
+        int[][] shape = _currentFigure.getShape();
+        int figureX = _currentFigure.getX();
+        int figureY = _currentFigure.getY();
+
+        for (int row = 0; row < shape.length; row++) {
+            for (int col = 0; col < shape[row].length; col++) {
+                if (shape[row][col] == 1) {
+                    getGrid().set(figureY + row, figureX + col, _currentFigure.getColor().getRGB());
+                }
+            }
+        }
+    }
+
+    private void tick() {
         if (_current == null) return;
         if (canMoveDown()) {
             _current.moveDown();
@@ -59,7 +87,10 @@ public class Mover {
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[row].length; col++) {
                 if (shape[row][col] == 1) {
-                    if (_currentFigure.getY() + row + 1 >= GameConfig.ROWS) return false;
+                    int newY = _currentFigure.getY() + row + 1;
+                    int newX = _currentFigure.getX() + col;
+                    if (newY >= getGrid().getRows()) return false;
+                    if (!getGrid().isEmpty(newY, newX)) return false;
                 }
             }
         }
@@ -71,7 +102,10 @@ public class Mover {
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[row].length; col++) {
                 if (shape[row][col] == 1) {
-                    if (_currentFigure.getX() + col - 1 < 0) return false;
+                    int newX = _currentFigure.getX() + col - 1;
+                    int newY = _currentFigure.getY() + row;
+                    if (newX < 0) return false;
+                    if (!getGrid().isEmpty(newY, newX)) return false;
                 }
             }
         }
@@ -83,7 +117,10 @@ public class Mover {
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[row].length; col++) {
                 if (shape[row][col] == 1) {
-                    if (_currentFigure.getX() + col + 1 >= GameConfig.COLS) return false;
+                    int newX = _currentFigure.getX() + col + 1;
+                    int newY = _currentFigure.getY() + row;
+                    if (newX >= getGrid().getCols()) return false;
+                    if (!getGrid().isEmpty(newY, newX)) return false;
                 }
             }
         }
@@ -100,8 +137,9 @@ public class Mover {
                 if (rotated[row][col] == 1) {
                     int newX = figureX + col;
                     int newY = figureY + row;
-                    if (newX < 0 || newX >= GameConfig.COLS) return false;
-                    if (newY < 0 || newY >= GameConfig.ROWS) return false;
+                    if (newX < 0 || newX >= getGrid().getCols()) return false;
+                    if (newY < 0 || newY >= getGrid().getRows()) return false;
+                    if (!getGrid().isEmpty(newY, newX)) return false;
                 }
             }
         }

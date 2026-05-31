@@ -12,14 +12,18 @@ public class Level {
     private GameTimer _gameTimer;
     private KeyHandler _keyHandler;
     private RenderFigure _renderFigure;
+    private Grid _grid;
 
     public Level() {
-        _gameInitializer = new GameInitializer();
-        _mover = new Mover(this::spawnNextFigure);
+        _grid = new Grid();
+        _gameInitializer = new GameInitializer(_grid);
+        _mover = new Mover(this::spawnNextFigure, _grid);
         _figureBag = new FigureBag();
         _renderFigure = new RenderFigure();
         _keyHandler = new KeyHandler(_mover, this::repaint);
-        _gameTimer = new GameTimer(this::tick);
+        _gameTimer = new GameTimer();
+        _gameTimer.addListener(_mover);
+        _gameTimer.addListener(() -> repaint());
     }
 
     public static void main(String[] args) {
@@ -31,11 +35,6 @@ public class Level {
         _gameInitializer.initialize(_keyHandler, _renderFigure);
         spawnNextFigure();
         _gameTimer.start();
-    }
-
-    private void tick() {
-        _mover.tick();
-        repaint();
     }
 
     private void repaint() {
