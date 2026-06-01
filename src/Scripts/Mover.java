@@ -5,6 +5,8 @@ import Scripts.Interfaces.IMovable;
 import Scripts.Interfaces.Listener.IScoreListener;
 import Scripts.Interfaces.Listener.ITickListener;
 
+import java.util.function.Function;
+
 public class Mover implements ITickListener {
 
     private IMovable _current;
@@ -12,12 +14,16 @@ public class Mover implements ITickListener {
     private Runnable _onDetach;
     private Runnable _onGameOver;
     private Grid _grid;
+    private FigureHolder _figureHolder;
     private IScoreListener _scoreListener;
+    private Function<Figure, Figure> _onHold;
 
-    public Mover(Runnable onDetach, Runnable onGameOver, Grid grid) {
+    public Mover(Runnable onDetach, Runnable onGameOver, Grid grid, Function<Figure, Figure> onHold, FigureHolder figureHolder) {
         _onDetach = onDetach;
         _onGameOver = onGameOver;
         _grid = grid;
+        _onHold = onHold;
+        _figureHolder = figureHolder;
     }
 
     public void setScoreListener(IScoreListener scoreListener) {
@@ -47,7 +53,17 @@ public class Mover implements ITickListener {
         getGrid().clearLines();
         _current = null;
         _currentFigure = null;
+        _figureHolder.release();
         _onDetach.run();
+    }
+
+    public void holdFigure() {
+        if (_currentFigure == null) return;
+        Figure newFigure = _onHold.apply(_currentFigure);
+        if (newFigure != null) {
+            _current = newFigure;
+            _currentFigure = newFigure;
+        }
     }
 
     private void placeFigure() {

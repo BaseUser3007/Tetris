@@ -8,10 +8,12 @@ public class GameDataProvider implements IDataProvider {
 
     private IScoreProvider _scoreProvider;
     private ILevelProvider _levelProvider;
+    private ScoreSystem _scoreSystem;
 
-    public GameDataProvider(IScoreProvider scoreProvider, ILevelProvider levelProvider) {
-        _scoreProvider = scoreProvider;
+    public GameDataProvider(ScoreSystem scoreSystem, ILevelProvider levelProvider) {
+        _scoreProvider = scoreSystem;
         _levelProvider = levelProvider;
+        _scoreSystem = scoreSystem;
     }
 
     @Override
@@ -22,5 +24,10 @@ public class GameDataProvider implements IDataProvider {
     @Override
     public int getLevel() {
         return _levelProvider.getLevel();
+    }
+
+    @Override
+    public int getBestScore() {
+        return _scoreSystem.getBestScore();
     }
 }

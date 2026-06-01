@@ -15,9 +15,11 @@ public class Renderer {
     private JPanel _infoPanel;
     private JLabel _scoreLabel;
     private JLabel _levelLabel;
+    private JLabel _bestScoreLabel;
     private List<IRenderListener> _gameListeners;
     private List<IRenderListener> _infoListeners;
     private IDataProvider _dataProvider;
+    private boolean _paused;
 
     public Renderer(IDataProvider dataProvider) {
         _dataProvider = dataProvider;
@@ -56,6 +58,7 @@ public class Renderer {
                 for (IRenderListener listener : _gameListeners) {
                     listener.onRender(g);
                 }
+                if (_paused) drawPause(g);
             }
         };
 
@@ -85,15 +88,22 @@ public class Renderer {
         _scoreLabel.setFont(GameConfig.TETRIS_FONT);
         _scoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        _bestScoreLabel = new JLabel("Best: 0");
+        _bestScoreLabel.setForeground(Color.YELLOW);
+        _bestScoreLabel.setFont(GameConfig.TETRIS_FONT);
+        _bestScoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         _levelLabel = new JLabel("Level: 1");
         _levelLabel.setForeground(Color.WHITE);
         _levelLabel.setFont(GameConfig.TETRIS_FONT);
         _levelLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        _infoPanel.add(Box.createVerticalStrut(400));
+        _infoPanel.add(Box.createVerticalStrut(GameConfig.SCORE_OFFSET_Y));
         _infoPanel.add(_scoreLabel);
-        _infoPanel.add(Box.createVerticalStrut(20));
+        _infoPanel.add(Box.createVerticalStrut(GameConfig.SCORE_GAP));
         _infoPanel.add(_levelLabel);
+        _infoPanel.add(Box.createVerticalStrut(GameConfig.SCORE_GAP));
+        _infoPanel.add(_bestScoreLabel);
 
         _window.add(_gamePanel, BorderLayout.CENTER);
         _window.add(_infoPanel, BorderLayout.EAST);
@@ -104,6 +114,7 @@ public class Renderer {
 
     private void updateLabels() {
         _scoreLabel.setText("Score: " + _dataProvider.getScore());
+        _bestScoreLabel.setText("Best: " + _dataProvider.getBestScore());
         _levelLabel.setText("Level: " + _dataProvider.getLevel());
     }
 
@@ -127,8 +138,30 @@ public class Renderer {
         }
     }
 
+    private void drawPause(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
+
+        g.setFont(GameConfig.TETRIS_FONT.deriveFont((float) GameConfig.PAUSE_FONT_SIZE));
+        FontMetrics fm = g.getFontMetrics();
+        String text = "PAUSE";
+        int x = (GameConfig.WINDOW_WIDTH - fm.stringWidth(text)) / 2;
+        int y = (GameConfig.WINDOW_HEIGHT - fm.getHeight()) / 2 + fm.getAscent();
+
+        g.setColor(Color.WHITE);
+        g.drawString(text, x, y);
+    }
+
     private void drawInfoBackground(Graphics g) {
         g.setColor(new Color(20, 20, 20));
-        g.fillRect(0, 0, 150, GameConfig.WINDOW_HEIGHT);
+        g.fillRect(0, 0, GameConfig.INFO_PANEL_WIDTH, GameConfig.WINDOW_HEIGHT);
+    }
+
+    public void showPause() {
+        _paused = true;
+    }
+
+    public void hidePause() {
+        _paused = false;
     }
 }

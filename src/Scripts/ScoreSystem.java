@@ -12,11 +12,15 @@ public class ScoreSystem implements IScoreListener, ILineClearedListener, IScore
     private static final int TETRIS = 4;
 
     private int _score;
+    private int _bestScore;
     private ILevelProvider _levelProvider;
+    private ScoreStorage _storage;
 
     public ScoreSystem(ILevelProvider levelProvider) {
         _levelProvider = levelProvider;
+        _storage = new ScoreStorage();
         _score = 0;
+        _bestScore = _storage.load();
     }
 
     @Override
@@ -43,6 +47,13 @@ public class ScoreSystem implements IScoreListener, ILineClearedListener, IScore
         }
     }
 
+    public void onGameOver() {
+        if (_score > _bestScore) {
+            _bestScore = _score;
+            _storage.save(_bestScore);
+        }
+    }
+
     public void reset() {
         _score = 0;
     }
@@ -50,5 +61,9 @@ public class ScoreSystem implements IScoreListener, ILineClearedListener, IScore
     @Override
     public int getScore() {
         return _score;
+    }
+
+    public int getBestScore() {
+        return _bestScore;
     }
 }
