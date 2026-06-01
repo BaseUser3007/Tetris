@@ -1,12 +1,13 @@
 package Scripts;
 
 import Scripts.Interfaces.Listener.ILineClearedListener;
+import Scripts.Interfaces.Listener.IRenderListener;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Grid {
+public class Grid implements IRenderListener {
 
     private int[][] _cells;
     private List<ILineClearedListener> _listeners;
@@ -56,7 +57,6 @@ public class Grid {
 
     public void clearLines() {
         int linesCleared = 0;
-
         for (int row = getRows() - 1; row >= 0; row--) {
             if (isLineFull(row)) {
                 removeLine(row);
@@ -64,7 +64,6 @@ public class Grid {
                 row++;
             }
         }
-
         if (linesCleared > 0) {
             notifyListeners(linesCleared);
         }
@@ -84,16 +83,15 @@ public class Grid {
         _cells[0] = new int[getCols()];
     }
 
-    public void render(Graphics g) {
+    @Override
+    public void onRender(Graphics g) {
         for (int row = 0; row < getRows(); row++) {
             for (int col = 0; col < getCols(); col++) {
                 if (!isEmpty(row, col)) {
                     int x = col * GameConfig.CELL_SIZE;
                     int y = row * GameConfig.CELL_SIZE;
-
                     g.setColor(new Color(_cells[row][col]));
                     g.fillRect(x + 1, y + 1, GameConfig.CELL_SIZE - 2, GameConfig.CELL_SIZE - 2);
-
                     g.setColor(new Color(_cells[row][col]).brighter());
                     g.drawRect(x + 1, y + 1, GameConfig.CELL_SIZE - 2, GameConfig.CELL_SIZE - 2);
                 }

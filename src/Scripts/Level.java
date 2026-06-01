@@ -7,7 +7,7 @@ import Scripts.Figures.RenderFigure;
 
 public class Level {
 
-    private GameInitializer _gameInitializer;
+    private Renderer _renderer;
     private FigureBag _figureBag;
     private Mover _mover;
     private GameTimer _gameTimer;
@@ -17,23 +17,31 @@ public class Level {
     private Grid _grid;
     private DifficultySystem _difficultySystem;
     private ScoreSystem _scoreSystem;
+    private GameDataProvider _dataProvider;
 
     public Level() {
         _grid = new Grid();
         _gameTimer = new GameTimer();
         _difficultySystem = new DifficultySystem(_gameTimer);
         _scoreSystem = new ScoreSystem(_difficultySystem);
+        _dataProvider = new GameDataProvider(_scoreSystem, _difficultySystem);
         _figureBag = new FigureBag();
         _renderFigure = new RenderFigure();
         _renderPreview = new RenderPreview(_figureBag);
-        _gameInitializer = new GameInitializer(_grid, _scoreSystem, _difficultySystem, _renderPreview);
+        _renderer = new Renderer(_dataProvider);
         _mover = new Mover(this::spawnNextFigure, this::onGameOver, _grid);
         _mover.setScoreListener(_scoreSystem);
         _keyHandler = new KeyHandler(_mover, this::repaint);
+
         _grid.addListener(_difficultySystem);
         _grid.addListener(_scoreSystem);
+
         _gameTimer.addListener(_mover);
         _gameTimer.addListener(() -> repaint());
+
+        _renderer.addGameListener(_grid);
+        _renderer.addGameListener(_renderFigure);
+        _renderer.addInfoListener(_renderPreview);
     }
 
     public static void main(String[] args) {
@@ -42,7 +50,7 @@ public class Level {
     }
 
     private void start() {
-        _gameInitializer.initialize(_keyHandler, _renderFigure);
+        _renderer.initialize(_keyHandler);
         spawnNextFigure();
         _gameTimer.start();
     }
@@ -54,15 +62,12 @@ public class Level {
     }
 
     private void onGameOver() {
-        System.out.println("Game Over! Restarting...");
         restart();
     }
 
     private void restart() {
         _grid.clear();
-        _figureBag.returnAll();
-        _figureBag.roll(_figureBag.getCurrentBag());
-        _figureBag.roll(_figureBag.getNextBag());
+        _figureBag.restart();
         _renderFigure.setFigure(null);
         _difficultySystem.reset();
         _scoreSystem.reset();
@@ -70,7 +75,6 @@ public class Level {
     }
 
     private void repaint() {
-        _gameInitializer.updateInfo();
-        _gameInitializer.getGamePanel().repaint();
+        _renderer.repaint();
     }
 }

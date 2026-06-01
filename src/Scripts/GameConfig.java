@@ -14,11 +14,13 @@ public class GameConfig {
     public static final int INITIAL_DELAY = 800;
     public static final int MIN_DELAY = 100;
     public static final int DELAY_STEP = 75;
-    public static final int LINES_PER_LEVEL = 40;
+    public static final int LINES_PER_LEVEL = 10;
 
     public static final int SCORE_PER_DROP = 1;
-    public static final int SCORE_PER_LINE = 100;
-    public static final int SCORE_PER_TETRIS = 500;
+    public static final int SCORE_PER_ONE_LINE = 100;
+    public static final int SCORE_PER_TWO_LINE = 250;
+    public static final int SCORE_PER_THREE_LINE = 400;
+    public static final int SCORE_PER_TETRIS = 600;
 
     public static final Font TETRIS_FONT = loadFont();
 

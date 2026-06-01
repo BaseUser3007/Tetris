@@ -39,10 +39,17 @@ public class FigureBag extends ObjectPool<Figure> {
         return new FigureI();
     }
 
-    public void roll(List<Figure> bag) {
+    private void roll(List<Figure> bag) {
         bag.clear();
         bag.addAll(_pool);
         Collections.shuffle(bag);
+    }
+
+    public void restart() {
+        returnAll();
+        roll(_currentBag);
+        roll(_nextBag);
+        _bagIndex = 0;
     }
 
     public Figure get() {
@@ -60,7 +67,6 @@ public class FigureBag extends ObjectPool<Figure> {
 
     public List<Figure> getPreview() {
         List<Figure> preview = new ArrayList<>();
-
         for (int i = _bagIndex; i < _bagIndex + PREVIEW_COUNT; i++) {
             if (i < _currentBag.size()) {
                 preview.add(_currentBag.get(i).copy());
@@ -69,13 +75,5 @@ public class FigureBag extends ObjectPool<Figure> {
             }
         }
         return preview;
-    }
-
-    public List<Figure> getCurrentBag() {
-        return _currentBag;
-    }
-
-    public List<Figure> getNextBag() {
-        return _nextBag;
     }
 }

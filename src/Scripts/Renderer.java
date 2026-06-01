@@ -1,38 +1,47 @@
 package Scripts;
 
-import Scripts.Bag.RenderPreview;
-import Scripts.Figures.RenderFigure;
+import Scripts.Interfaces.Listener.DataProvider.IDataProvider;
+import Scripts.Interfaces.Listener.IRenderListener;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class GameInitializer {
+public class Renderer {
 
     private JFrame _window;
     private JPanel _gamePanel;
     private JPanel _infoPanel;
     private JLabel _scoreLabel;
     private JLabel _levelLabel;
-    private RenderFigure _renderFigure;
-    private RenderPreview _renderPreview;
-    private Grid _grid;
-    private ScoreSystem _scoreSystem;
-    private DifficultySystem _difficultySystem;
+    private List<IRenderListener> _gameListeners;
+    private List<IRenderListener> _infoListeners;
+    private IDataProvider _dataProvider;
 
-    public GameInitializer(Grid grid, ScoreSystem scoreSystem, DifficultySystem difficultySystem, RenderPreview renderPreview) {
-        _grid = grid;
-        _scoreSystem = scoreSystem;
-        _difficultySystem = difficultySystem;
-        _renderPreview = renderPreview;
+    public Renderer(IDataProvider dataProvider) {
+        _dataProvider = dataProvider;
+        _gameListeners = new ArrayList<>();
+        _infoListeners = new ArrayList<>();
     }
 
-    private Grid getGrid() {
-        return _grid;
+    public void addGameListener(IRenderListener listener) {
+        _gameListeners.add(listener);
     }
 
-    public void initialize(KeyHandler keyHandler, RenderFigure renderFigure) {
-        _renderFigure = renderFigure;
+    public void addInfoListener(IRenderListener listener) {
+        _infoListeners.add(listener);
+    }
 
+    public void removeGameListener(IRenderListener listener) {
+        _gameListeners.remove(listener);
+    }
+
+    public void removeInfoListener(IRenderListener listener) {
+        _infoListeners.remove(listener);
+    }
+
+    public void initialize(KeyHandler keyHandler) {
         _window = new JFrame("Тетрис");
         _window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         _window.setResizable(false);
@@ -44,8 +53,9 @@ public class GameInitializer {
                 super.paintComponent(g);
                 drawBackground(g);
                 drawGrid(g);
-                getGrid().render(g);
-                _renderFigure.render(g);
+                for (IRenderListener listener : _gameListeners) {
+                    listener.onRender(g);
+                }
             }
         };
 
@@ -59,7 +69,10 @@ public class GameInitializer {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 drawInfoBackground(g);
-                _renderPreview.render(g, getWidth());
+                updateLabels();
+                for (IRenderListener listener : _infoListeners) {
+                    listener.onRender(g);
+                }
             }
         };
 
@@ -89,14 +102,13 @@ public class GameInitializer {
         _gamePanel.requestFocusInWindow();
     }
 
-    private void drawInfoBackground(Graphics g) {
-        g.setColor(new Color(20, 20, 20));
-        g.fillRect(0, 0, 150, GameConfig.WINDOW_HEIGHT);
+    private void updateLabels() {
+        _scoreLabel.setText("Score: " + _dataProvider.getScore());
+        _levelLabel.setText("Level: " + _dataProvider.getLevel());
     }
 
-    public void updateInfo() {
-        _scoreLabel.setText("Score: " + _scoreSystem.getScore());
-        _levelLabel.setText("Level: " + _difficultySystem.getCurrentLevel());
+    public void repaint() {
+        _gamePanel.repaint();
         _infoPanel.repaint();
     }
 
@@ -107,15 +119,16 @@ public class GameInitializer {
 
     private void drawGrid(Graphics g) {
         g.setColor(new Color(40, 40, 40));
-        for (int col = 0; col <= getGrid().getCols(); col++) {
+        for (int col = 0; col <= GameConfig.COLS; col++) {
             g.drawLine(col * GameConfig.CELL_SIZE, 0, col * GameConfig.CELL_SIZE, GameConfig.WINDOW_HEIGHT);
         }
-        for (int row = 0; row <= getGrid().getRows(); row++) {
+        for (int row = 0; row <= GameConfig.ROWS; row++) {
             g.drawLine(0, row * GameConfig.CELL_SIZE, GameConfig.WINDOW_WIDTH, row * GameConfig.CELL_SIZE);
         }
     }
 
-    public JPanel getGamePanel() {
-        return _gamePanel;
+    private void drawInfoBackground(Graphics g) {
+        g.setColor(new Color(20, 20, 20));
+        g.fillRect(0, 0, 150, GameConfig.WINDOW_HEIGHT);
     }
 }

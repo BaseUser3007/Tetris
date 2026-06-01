@@ -1,8 +1,9 @@
 package Scripts;
 
 import Scripts.Interfaces.Listener.ILineClearedListener;
+import Scripts.Interfaces.Listener.DataProvider.ILevelProvider;
 
-public class DifficultySystem implements ILineClearedListener {
+public class DifficultySystem implements ILineClearedListener, ILevelProvider {
 
     private int _totalLines;
     private int _currentLevel;
@@ -22,7 +23,6 @@ public class DifficultySystem implements ILineClearedListener {
         if (newLevel > _currentLevel) {
             _currentLevel = newLevel;
             updateSpeed();
-            System.out.println("Level up! Level: " + _currentLevel);
         }
     }
 
@@ -37,11 +37,12 @@ public class DifficultySystem implements ILineClearedListener {
         _gameTimer.setDelay(GameConfig.INITIAL_DELAY);
     }
 
-    public int getCurrentLevel() {
+    @Override
+    public int getLevel() {
         return _currentLevel;
     }
 
-    public int getTotalLines() {
-        return _totalLines;
+    public int getCurrentLevel() {
+        return _currentLevel;
     }
 }
